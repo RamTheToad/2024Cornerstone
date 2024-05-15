@@ -1,0 +1,21 @@
+  /*decide on a clearance time for them(basically if it calls for 2000 ms apart, maybe like a 500ms clearance on both sides)
+   * then have the loop trigger that many times, and if it doesn't detect the knocks, in the celarance time, reset numlocks to 0
+   * this works because there is a 100 delay between runs.
+   * should prob make a delay constant.
+   * add a way to detect completely answering
+   * 
+   * for knock wait times, have it basically just loop the number of times then if it detects a knock then you can basically restart the run. Can combine this with the clearance time code
+   * so for final documentations sake
+   * 
+   * check for knock
+   * check if it was supposed to be a knock
+   *    if 1st knock: if knock detected change numknocks and delay(clearance will be just the area runs around the buffer, with a constant variable)
+   *      set buffer, clearance is a constant, and currentRun should be 0, also numKnocks should be +=1 (2)
+   *    if 2nd-4th knock: same as before but you gotta make sure that it was supposed to be a knock
+   *      if it wasn't supposed to be a knock, reset
+   *    if 5th knock: move servo, delay for like 5-10 seconds, then move it back. Then reset
+   * update values accordingly
+   * 
+   * what does resetting mean:
+   * set numKnocks to 0, all other values should update in 1st knock detected
+   */
