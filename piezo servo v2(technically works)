@@ -1,0 +1,82 @@
+#include <Servo.h>
+#include <EEPROM.h>
+
+Servo myservo;  // create servo object to control a servo
+// twelve servo objects can be created on most boards
+
+// these constants won't change:
+
+const int ledPin = 13;
+const int knockSensor = A0;  // the piezo is connected to analog pin 0
+const int THRESHOLD = 50;   // threshold value to decide when the detected sound is a knock or not
+const int DELAY = 100; //delay between each loop in ms
+const int CLEARANCE = 10;
+
+// these variables will change:
+int sensorReading = 0;  // variable to store the value read from the sensor pin
+//int ledState = LOW;     // variable used to store the last LED status, to toggle the light
+int numKnocks = 0; //number of knocks in this current solution attempt
+int clearRuns = 0; //number Of Clearance Runs Passed
+int modDelay =0 ; //how much the delay mandate by key is
+
+//max number you can store in an address is 208, so put everything in deciseconds
+int firstSpace = 10;
+int secondSpace = 20;
+int thirdSpace = 10;
+int fourthSpace = 10;
+int configKey[] = {firstSpace, secondSpace, thirdSpace, fourthSpace};
+
+void setup() {
+  Serial.begin(9600);       // use the serial port
+  pinMode(ledPin, OUTPUT);
+  myservo.attach(3);  // attaches the servo on pin 3 to the servo object
+  for(int i = 0; i<4; i++){
+    EEPROM.update(100+i, configKey[i]); 
+    Serial.println(configKey[i]);
+  }
+}
+
+void loop() {
+  //check for reading, if it gets a reading, it should trigger the key checker
+  sensorReading = analogRead(knockSensor);
+  if (sensorReading >= THRESHOLD) {
+    Serial.println("true");
+    if (numKnocks > 0 and numKnocks < 5){
+      //Serial.println(clearRuns > (modDelay-CLEARANCE), clearRuns < (modDelay+CLEARANCE));
+      if (clearRuns > (modDelay-CLEARANCE) and clearRuns < (modDelay+CLEARANCE)){
+        numKnocks++;
+        clearRuns = 0;
+        modDelay = EEPROM.read(99+numKnocks);
+        Serial.print("EEPROM: ");
+        Serial.println(EEPROM.read(99+numKnocks));
+        Serial.println("might mks");
+        Serial.println(clearRuns);
+        Serial.println("^");
+      }else{
+        numKnocks = 0;
+      }
+    }else{
+      numKnocks++;
+      modDelay = EEPROM.read(99+numKnocks);
+      clearRuns = 0;
+    }
+  }else{
+    if (numKnocks != 0){
+      clearRuns++;
+    }
+  }
+  if (numKnocks == 5){
+    numKnocks = 0;
+    myservo.write(180);
+    delay(5000);
+    myservo.write(0);
+  }
+  Serial.println(numKnocks);
+  Serial.println(clearRuns);
+  if (clearRuns > (modDelay-CLEARANCE) and clearRuns < (modDelay+CLEARANCE)-1){
+    digitalWrite(ledPin, HIGH);
+  }else{
+    digitalWrite(ledPin, LOW);
+  }
+  delay(DELAY);  // delay to avoid overloading the serial port buffer
+}
