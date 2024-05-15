@@ -1,0 +1,48 @@
+#include <Servo.h>
+#include <EEPROM.h>
+
+Servo myservo;  // create servo object to control a servo
+// twelve servo objects can be created on most boards
+
+// these constants won't change:
+
+const int ledPin = 13;       // LED connected to digital pin 13
+const int knockSensor = A0;  // the piezo is connected to analog pin 0
+const int threshold = 50;   // threshold value to decide when the detected sound is a knock or not
+
+
+// these variables will change:
+int sensorReading = 0;  // variable to store the value read from the sensor pin
+//int ledState = LOW;     // variable used to store the last LED status, to toggle the light
+int pos = 0;
+int firstSpace = 1000;
+int secondSpace = 2000;
+int thirdSpace = 1000;
+int fourthSpace = 1000;
+int configKey[] = {1000,2000,1000,1000}
+
+void setup() {
+  pinMode(ledPin, OUTPUT);  // declare the ledPin as as OUTPUT
+  Serial.begin(9600);       // use the serial port
+  myservo.attach(3);  // attaches the servo on pin 3 to the servo object
+  EEPROM.write(1, configKey);
+}
+
+void loop() {
+  // read the sensor and store it in the variable sensorReading:
+  sensorReading = analogRead(knockSensor);
+  Serial.println(sensorReading);
+  // if the sensor reading is greater than the threshold:
+  if (sensorReading >= threshold) {
+    if (pos == 180) {
+      pos = 0;
+    }else{
+      pos = 180;
+      Serial.println(EEPROM.read(0));
+      //EEPROM.write(0, x)
+    }
+    myservo.write(pos);
+    Serial.println("Knock!");
+  }
+  delay(100);  // delay to avoid overloading the serial port buffer
+}
